@@ -1,21 +1,62 @@
+import { useState } from 'react';
 import './App.css';
 import { Grid } from '@mui/material';
 import IndicatorUI from './components/IndicatorUI';
 import useFetchData from './hooks/useFetchData';
+
+import HeaderUI from './components/HeaderUI';
+import AlertUI from './components/AlertUI';
+import SelectorUI from './components/SelectorUI';
 
 function App() {
     const dataFetcherOutput = useFetchData();
     return (
         <Grid container spacing={5} sx={{ justifyContent: 'center', alignItems: 'center' }}>
 
+    return (
+        <Grid
+            container
+            spacing={5}
+            sx={{
+                justifyContent: 'center',
+                alignItems: 'center'
+            }}
+        >
             {/* Encabezado */}
-            <Grid size={{ xs: 12, md: 12 }}>Elemento: Encabezado</Grid>
+            <Grid size={{ xs: 12 }}>
+                <HeaderUI />
+            </Grid>
 
             {/* Alertas */}
-            <Grid size={{ xs: 12, md: 12 }}>Elemento: Alertas</Grid>
+            <Grid
+                size={{ xs: 12 }}
+                container
+                sx={{
+                    justifyContent: 'flex-end',
+                    alignItems: 'center'
+                }}
+            >
+                <AlertUI description="No se prevén lluvias" />
+            </Grid>
 
             {/* Selector */}
-            <Grid size={{ xs: 12, md: 3 }}>Elemento: Selector</Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+                <SelectorUI
+                    city={cityInput}
+                    onCityChange={setCityInput}
+                />
+
+                {cityInput && (
+                    <p>
+                        Información del clima en{' '}
+                        <strong
+                            style={{ textTransform: 'capitalize' }}
+                        >
+                            {cityInput}
+                        </strong>
+                    </p>
+                )}
+            </Grid>
 
             {/* Indicadores */}
             <Grid container size={{ xs: 12, md: 9 }}>
@@ -55,18 +96,30 @@ function App() {
             </Grid>
 
             {/* Gráfico */}
-            <Grid size={{ xs: 12, md: 6 }} sx={{ display: { xs: 'none', md: 'block' } }}>
-                Elemento: Gráfico
+            <Grid
+                size={{ xs: 12, md: 6 }}
+                sx={{
+                    display: { xs: 'none', md: 'block' }
+                }}
+            >
+                Elemento: Gráfico de {cityInput || 'ninguna ciudad'}
             </Grid>
 
             {/* Tabla */}
-            <Grid size={{ xs: 12, md: 6 }} sx={{ display: { xs: 'none', md: 'block' } }}>
-                Elemento: Tabla
+            <Grid
+                size={{ xs: 12, md: 6 }}
+                sx={{
+                    display: { xs: 'none', md: 'block' }
+                }}
+            >
+                Elemento: Tabla de {cityInput || 'ninguna ciudad'}
             </Grid>
 
             {/* Información adicional */}
-            <Grid size={{ xs: 12, md: 12 }}>Elemento: Información adicional</Grid>
-
+            <Grid size={{ xs: 12 }}>
+                Información adicional de{' '}
+                {cityInput || 'ninguna ciudad'}
+            </Grid>
         </Grid>
     );
 }

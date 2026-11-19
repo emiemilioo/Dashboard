@@ -1,124 +1,47 @@
 import { useState } from 'react';
+import { Alert, Box, CircularProgress, Grid, Typography } from '@mui/material';
 import './App.css';
-import { Grid } from '@mui/material';
+import AlertUI from './components/AlertUI';
+import HeaderUI from './components/HeaderUI';
 import IndicatorUI from './components/IndicatorUI';
+import SelectorUI from './components/SelectorUI';
 import useFetchData from './hooks/useFetchData';
 
-import HeaderUI from './components/HeaderUI';
-import AlertUI from './components/AlertUI';
-import SelectorUI from './components/SelectorUI';
+const cities = {
+    guayaquil: { name: 'Guayaquil', latitude: -2.1962, longitude: -79.8862 },
+    quito: { name: 'Quito', latitude: -0.1807, longitude: -78.4678 },
+    manta: { name: 'Manta', latitude: -0.9677, longitude: -80.7089 },
+    cuenca: { name: 'Cuenca', latitude: -2.9001, longitude: -79.0059 }
+} as const;
+
+type CityKey = keyof typeof cities;
 
 function App() {
-    const dataFetcherOutput = useFetchData();
-    return (
-        <Grid container spacing={5} sx={{ justifyContent: 'center', alignItems: 'center' }}>
+    const [cityInput, setCityInput] = useState<CityKey>('guayaquil');
+    const city = cities[cityInput];
+    const { data, error, loading } = useFetchData(city.latitude, city.longitude);
 
     return (
-        <Grid
-            container
-            spacing={5}
-            sx={{
-                justifyContent: 'center',
-                alignItems: 'center'
-            }}
-        >
-            {/* Encabezado */}
-            <Grid size={{ xs: 12 }}>
-                <HeaderUI />
+        <Grid container spacing={3} sx={{ p: { xs: 2, md: 4 }, alignItems: 'stretch' }}>
+            <Grid size={{ xs: 12 }}><HeaderUI /></Grid>
+            <Grid size={{ xs: 12 }} container sx={{ justifyContent: 'flex-end' }}>
+                <AlertUI description={`Datos meteorológicos actuales de ${city.name}`} />
             </Grid>
-
-            {/* Alertas */}
-            <Grid
-                size={{ xs: 12 }}
-                container
-                sx={{
-                    justifyContent: 'flex-end',
-                    alignItems: 'center'
-                }}
-            >
-                <AlertUI description="No se prevén lluvias" />
-            </Grid>
-
-            {/* Selector */}
             <Grid size={{ xs: 12, md: 3 }}>
-                <SelectorUI
-                    city={cityInput}
-                    onCityChange={setCityInput}
-                />
-
-                {cityInput && (
-                    <p>
-                        Información del clima en{' '}
-                        <strong
-                            style={{ textTransform: 'capitalize' }}
-                        >
-                            {cityInput}
-                        </strong>
-                    </p>
-                )}
+                <SelectorUI city={cityInput} onCityChange={(value) => setCityInput(value as CityKey)} />
+                <Typography sx={{ mt: 2 }}>Información del clima en <strong>{city.name}</strong></Typography>
             </Grid>
-
-            {/* Indicadores */}
-            <Grid container size={{ xs: 12, md: 9 }}>
-
-                <Grid size={{ xs: 12, md: 3 }}>
-                    {dataFetcherOutput &&
-                        (<IndicatorUI
-                            title='Temperatura (2m)'
-                            description={`${dataFetcherOutput.current.temperature_2m} ${dataFetcherOutput.current_units.temperature_2m}`} />)
-                    }
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 3 }}>
-                    {dataFetcherOutput &&
-                        (<IndicatorUI
-                            title='Temperatura aparente'
-                            description={`${dataFetcherOutput.current.apparent_temperature} ${dataFetcherOutput.current_units.apparent_temperature}`} />)
-                    }
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 3 }}>
-                    {dataFetcherOutput &&
-                        (<IndicatorUI
-                            title='Velocidad del viento'
-                            description={`${dataFetcherOutput.current.wind_speed_10m} ${dataFetcherOutput.current_units.wind_speed_10m}`} />)
-                    }
-                </Grid>
-
-                <Grid size={{ xs: 12, md: 3 }}>
-                    {dataFetcherOutput &&
-                        (<IndicatorUI
-                            title='Humedad relativa'
-                            description={`${dataFetcherOutput.current.relative_humidity_2m} ${dataFetcherOutput.current_units.relative_humidity_2m}`} />)
-                    }
-                </Grid>
-
-            </Grid>
-
-            {/* Gráfico */}
-            <Grid
-                size={{ xs: 12, md: 6 }}
-                sx={{
-                    display: { xs: 'none', md: 'block' }
-                }}
-            >
-                Elemento: Gráfico de {cityInput || 'ninguna ciudad'}
-            </Grid>
-
-            {/* Tabla */}
-            <Grid
-                size={{ xs: 12, md: 6 }}
-                sx={{
-                    display: { xs: 'none', md: 'block' }
-                }}
-            >
-                Elemento: Tabla de {cityInput || 'ninguna ciudad'}
-            </Grid>
-
-            {/* Información adicional */}
-            <Grid size={{ xs: 12 }}>
-                Información adicional de{' '}
-                {cityInput || 'ninguna ciudad'}
+            <Grid container spacing={2} size={{ xs: 12, md: 9 }}>
+                {loading && <Grid size={{ xs: 12 }}><Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress aria-label="Cargando datos meteorológicos" /></Box></Grid>}
+                {error && <Grid size={{ xs: 12 }}><Alert severity="error">{error}</Alert></Grid>}
+                {data && [
+                    ['Temperatura (2 m)', `${data.current.temperature_2m} ${data.current_units.temperature_2m}`],
+                    ['Temperatura aparente', `${data.current.apparent_temperature} ${data.current_units.apparent_temperature}`],
+                    ['Velocidad del viento', `${data.current.wind_speed_10m} ${data.current_units.wind_speed_10m}`],
+                    ['Humedad relativa', `${data.current.relative_humidity_2m} ${data.current_units.relative_humidity_2m}`]
+                ].map(([title, description]) => (
+                    <Grid key={title} size={{ xs: 12, sm: 6, lg: 3 }}><IndicatorUI title={title} description={description} /></Grid>
+                ))}
             </Grid>
         </Grid>
     );

@@ -1,21 +1,39 @@
 import { useEffect, useState } from 'react';
 import { type OpenMeteoResponse } from '../types/DashboardTypes';
 
-const API_URL = 'https://api.open-meteo.com/v1/forecast?latitude=-2.1962&longitude=-79.8862&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m&timezone=America%2FGuayaquil';
+interface FetchState {
+    data: OpenMeteoResponse | null;
+    error: string | null;
+    loading: boolean;
+}
 
-export default function useFetchData(): OpenMeteoResponse | null {
-
-    const [data, setData] = useState<OpenMeteoResponse | null>(null);
+export default function useFetchData(latitude: number, longitude: number): FetchState {
+    const [state, setState] = useState<FetchState>({ data: null, error: null, loading: true });
 
     useEffect(() => {
-        const obtenerDatos = async () => {
-            const respuesta = await fetch(API_URL);
-            const json: OpenMeteoResponse = await respuesta.json();
-            setData(json);
-        };
+        const controller = new AbortController();
+        const params = new URLSearchParams({
+            latitude: String(latitude), longitude: String(longitude),
+            current: 'temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m',
+            timezone: 'America/Guayaquil'
+        });
 
-        obtenerDatos();
-    }, []); // El arreglo vacío ejecuta el efecto solo después del primer renderizado
+        async function fetchWeather() {
+            setState({ data: null, error: null, loading: true });
+            try {
+                const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`, { signal: controller.signal });
+                if (!response.ok) throw new Error(`La API respondió con el estado ${response.status}`);
+                const data: OpenMeteoResponse = await response.json();
+                setState({ data, error: null, loading: false });
+            } catch (error) {
+                if (error instanceof DOMException && error.name === 'AbortError') return;
+                setState({ data: null, error: 'No se pudieron cargar los datos meteorológicos.', loading: false });
+            }
+        }
 
-    return data;
+        void fetchWeather();
+        return () => controller.abort();
+    }, [latitude, longitude]);
+
+    return state;
 }

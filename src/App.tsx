@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Alert, Box, CircularProgress, Grid, Typography } from '@mui/material';
 import './App.css';
 import AlertUI from './components/AlertUI';
+import ChartUI from './components/ChartUI';
 import HeaderUI from './components/HeaderUI';
 import IndicatorUI from './components/IndicatorUI';
 import SelectorUI from './components/SelectorUI';
+import TableUI from './components/TableUI';
 import useFetchData from './hooks/useFetchData';
 
 const cities = {
@@ -43,6 +45,30 @@ function App() {
                     <Grid key={title} size={{ xs: 12, sm: 6, lg: 3 }}><IndicatorUI title={title} description={description} /></Grid>
                 ))}
             </Grid>
+
+            {data && (
+                <>
+                    <Grid size={{ xs: 12, lg: 6 }}>
+                        <ChartUI
+                            title="Temperatura y viento por hora"
+                            labels={data.hourly.time.map((time) => time.slice(11))}
+                            values1={data.hourly.temperature_2m}
+                            values2={data.hourly.wind_speed_10m}
+                            label1={`Temperatura (${data.hourly_units.temperature_2m})`}
+                            label2={`Viento (${data.hourly_units.wind_speed_10m})`}
+                        />
+                    </Grid>
+                    <Grid size={{ xs: 12, lg: 6 }}>
+                        <TableUI
+                            labels={data.hourly.time.map((time) => time.slice(11))}
+                            values1={data.hourly.temperature_2m}
+                            values2={data.hourly.wind_speed_10m}
+                            header1={`Temperatura (${data.hourly_units.temperature_2m})`}
+                            header2={`Viento (${data.hourly_units.wind_speed_10m})`}
+                        />
+                    </Grid>
+                </>
+            )}
         </Grid>
     );
 }

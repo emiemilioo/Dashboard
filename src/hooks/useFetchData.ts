@@ -15,7 +15,9 @@ export default function useFetchData(latitude: number, longitude: number): Fetch
         const params = new URLSearchParams({
             latitude: String(latitude), longitude: String(longitude),
             current: 'temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m',
-            timezone: 'America/Guayaquil'
+            hourly: 'temperature_2m,wind_speed_10m',
+            timezone: 'America/Guayaquil',
+            forecast_days: '1'
         });
 
         async function fetchWeather() {
